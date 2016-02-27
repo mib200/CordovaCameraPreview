@@ -1,4 +1,4 @@
-package com.mbppower;
+package com.mib200;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;

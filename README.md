@@ -19,7 +19,7 @@ Show camera preview popup on top of the HTML.<br/>
 <p><b>Installation:</b></p>
 
 ```
-cordova plugin add https://github.com/mbppower/CordovaCameraPreview.git
+cordova plugin add https://github.com/mib200/CordovaCameraPreview.git
 ```
 
 <b>Phonegap Build:</b><br/>

@@ -2,14 +2,14 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="com.mbppower.camerapreview"
-    version="0.0.8">
-    <name>CameraPreview</name>
+    id="com.mib200.camerapreview"
+    version="0.0.9">
+    <name>Cordova Camera Preview</name>
     <description>Cordova plugin that allows camera interaction from HTML code. Show camera preview popup on top of the HTML.</description>
     <license>Apache 2.0</license>
     <keywords>Ionic,Cordova,Camera, Preview, Popup, Floating, Box</keywords>
-    <repo>https://github.com/mbppower/CordovaCameraPreview.git</repo>
-    <issue>https://github.com/mbppower/CordovaCameraPreview/issues</issue>
+    <repo>https://github.com/mib200/CordovaCameraPreview.git</repo>
+    <issue>https://github.com/mib200/CordovaCameraPreview/issues</issue>
 
   <js-module src="www/CameraPreview.js" name="CameraPreview">
     <clobbers target="cordova.plugins.camerapreview" />
@@ -20,7 +20,7 @@
   
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="CameraPreview">
-        <param name="android-package" value="com.mbppower.CameraPreview" />
+        <param name="android-package" value="com.mib200.CameraPreview" />
         <param name="onload" value="true" />
       </feature>
     </config-file>
@@ -32,13 +32,13 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     </config-file>
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
-	<activity android:name="com.mbppower.CameraActivity" android:screenOrientation="portrait" android:theme="@style/CameraPreviewTheme" />
+	<activity android:name="com.mib200.CameraActivity" android:screenOrientation="portrait" android:theme="@style/CameraPreviewTheme" />
     </config-file>
     
-    <source-file src="src/android/com/mbppower/CameraPreview.java" target-dir="src/com/mbppower" />
-    <source-file src="src/android/com/mbppower/CameraActivity.java" target-dir="src/com/mbppower" />
-    <source-file src="src/android/com/mbppower/camera_activity.xml" target-dir="res/layout" />
-    <source-file src="src/android/com/mbppower/camera_theme.xml" target-dir="res/values" />
+    <source-file src="src/android/com/mib200/CameraPreview.java" target-dir="src/com/mib200" />
+    <source-file src="src/android/com/mib200/CameraActivity.java" target-dir="src/com/mib200" />
+    <source-file src="src/android/com/mib200/camera_activity.xml" target-dir="res/layout" />
+    <source-file src="src/android/com/mib200/camera_theme.xml" target-dir="res/values" />
         
   </platform>
 
