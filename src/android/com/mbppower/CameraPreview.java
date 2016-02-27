@@ -187,6 +187,7 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
       } else if (effect.equals("whiteboard")) {
         params.setColorEffect(Camera.Parameters.EFFECT_WHITEBOARD);
       }
+			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 
   	  fragment.setCameraParameters(params);
 	    return true;

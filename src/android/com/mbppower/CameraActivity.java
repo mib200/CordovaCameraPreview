@@ -188,12 +188,12 @@ public class CameraActivity extends Fragment {
 	        });
         }
     }
-	
+
     private void setDefaultCameraId(){
-		
+
 		// Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
-		
+
 		int camId = defaultCamera.equals("front") ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
 
 		// Find the ID of the default camera
@@ -206,7 +206,7 @@ public class CameraActivity extends Fragment {
 			}
 		}
 	}
-	
+
     @Override
     public void onResume() {
         super.onResume();
@@ -218,7 +218,7 @@ public class CameraActivity extends Fragment {
         }
 
         cameraCurrentlyLocked = defaultCameraId;
-        
+
         if(mPreview.mPreviewSize == null){
 		mPreview.setCamera(mCamera, cameraCurrentlyLocked);
 	} else {
@@ -316,14 +316,14 @@ public class CameraActivity extends Fragment {
         canvas.drawBitmap(bitmap, -rect.left, -rect.top, null);
         return ret;
     }
-	
+
 	public void takePicture(final double maxWidth, final double maxHeight){
 		final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
 		if(mPreview != null) {
-			
+
 			if(!canTakePicture)
 				return;
-			
+
 			canTakePicture = false;
 
 			mPreview.setOneShotPreviewCallback(new Camera.PreviewCallback() {
@@ -480,7 +480,7 @@ public class CameraActivity extends Fragment {
 		}
 		return inSampleSize;
 	}
-	
+
     private Bitmap loadBitmapFromView(View v) {
         Bitmap b = Bitmap.createBitmap( v.getMeasuredWidth(), v.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
@@ -488,7 +488,7 @@ public class CameraActivity extends Fragment {
         v.draw(c);
         return b;
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -583,6 +583,7 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
             camera.setPreviewDisplay(mHolder);
 	        Camera.Parameters parameters = camera.getParameters();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+						parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 	        camera.setParameters(parameters);
         }
         catch (IOException exception) {
@@ -681,43 +682,41 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
             mCamera.stopPreview();
         }
     }
-    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
-        final double ASPECT_TOLERANCE = 0.1;
-        double targetRatio = (double) w / h;
-        if (displayOrientation == 90 || displayOrientation == 270) {
-            targetRatio = (double) h / w;
-        }
-        if (sizes == null) return null;
 
-        Camera.Size optimalSize = null;
-        double minDiff = Double.MAX_VALUE;
+		private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+		int bestChoice = 0;
 
-        int targetHeight = h;
+		int currentHighest = 0;
 
-        // Try to find an size match aspect ratio and size
-        for (Camera.Size size : sizes) {
-            double ratio = (double) size.width / size.height;
-            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
-            if (Math.abs(size.height - targetHeight) < minDiff) {
-                optimalSize = size;
-                minDiff = Math.abs(size.height - targetHeight);
-            }
-        }
+		for (int i = 0; i < sizes.size(); i++){
+			int res = sizes.get(i).width * sizes.get(i).height;
+			if(res > currentHighest){
+				currentHighest = res;
+				bestChoice = i;
+			}
+		}
 
-        // Cannot find the one match the aspect ratio, ignore the requirement
-        if (optimalSize == null) {
-            minDiff = Double.MAX_VALUE;
-            for (Camera.Size size : sizes) {
-                if (Math.abs(size.height - targetHeight) < minDiff) {
-                    optimalSize = size;
-                    minDiff = Math.abs(size.height - targetHeight);
-                }
-            }
-        }
+		return sizes.get(bestChoice);
+	}
 
-        Log.d(TAG, "optimal preview size: w: " + optimalSize.width + " h: " + optimalSize.height);
-        return optimalSize;
-    }
+	private Camera.Size getOptimalPreviewSizeOLD(List<Camera.Size> sizes, int w, int h) {
+		int bestChoice = 0;
+
+		int currentDiffHeigh = Integer.MAX_VALUE;
+		int currentDiffWidth = Integer.MAX_VALUE;
+
+		for (int i = 0; i < sizes.size(); i++){
+			Log.e("height " + i, Integer.toString(sizes.get(i).height));
+			Log.e("width " + i, Integer.toString(sizes.get(i).width));
+			int diff = Math.abs(sizes.get(i).width - w ) + Math.abs(sizes.get(i).height - h );
+			if(diff < currentDiffHeigh){
+				currentDiffHeigh = diff;
+				bestChoice = i;
+			}
+		}
+
+		return sizes.get(bestChoice);
+	}
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
 	    if(mCamera != null) {
