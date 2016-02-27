@@ -318,6 +318,7 @@
                     NSMutableArray *params = [[NSMutableArray alloc] init];
 
                     [params addObject:originalPicturePath];
+                    [params addObject:originalPicturePath]; // For returning preview also
 
                     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:params];
                     [pluginResult setKeepCallbackAsBool:true];
