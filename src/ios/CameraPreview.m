@@ -224,6 +224,37 @@
     return normalizedImage;
 }
 
++(UIImage *)getCenterMaxSquareImageByCroppingImage:(UIImage *)image withOrientation:(UIImageOrientation)imageOrientation
+
+{
+    CGSize centerSquareSize;
+    double oriImgWid = CGImageGetWidth(image.CGImage);
+    double oriImgHgt = CGImageGetHeight(image.CGImage);
+    NSLog(@"oriImgWid==[%.1f], oriImgHgt==[%.1f]", oriImgWid, oriImgHgt);
+    if(oriImgHgt <= oriImgWid) {
+        centerSquareSize.width = oriImgHgt;
+        centerSquareSize.height = oriImgHgt;
+    }else {
+        centerSquareSize.width = oriImgWid;
+        centerSquareSize.height = oriImgWid;
+    }
+    
+    NSLog(@"squareWid==[%.1f], squareHgt==[%.1f]", centerSquareSize.width, centerSquareSize.height);
+    
+    double x = (oriImgWid - centerSquareSize.width) / 2.0;
+    double y = (oriImgHgt - centerSquareSize.height) / 2.0;
+    NSLog(@"x==[%.1f], x==[%.1f]", x, y);
+    
+    CGRect cropRect = CGRectMake(x, y, centerSquareSize.height, centerSquareSize.width);
+    CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], cropRect);
+    
+    UIImage *cropped = [UIImage imageWithCGImage:imageRef scale:0.0 orientation:imageOrientation];
+    CGImageRelease(imageRef);
+    
+    
+    return cropped;
+}
+
 - (void) invokeTakePicture:(CGFloat) maxWidth withHeight:(CGFloat) maxHeight {
         AVCaptureConnection *connection = [self.sessionManager.stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
         [self.sessionManager.stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler:^(CMSampleBufferRef sampleBuffer, NSError *error) {
@@ -234,6 +265,8 @@
             } else {
                 NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
                 UIImage *capturedImage  = [CameraPreview normalizedImage:[[UIImage alloc] initWithData:imageData]];
+                
+                capturedImage = [CameraPreview getCenterMaxSquareImageByCroppingImage:capturedImage withOrientation:UIImageOrientationDown];
 
                 CIImage *capturedCImage;
                 //image resize
