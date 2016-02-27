@@ -154,42 +154,42 @@ public class CameraPreview extends CordovaPlugin implements CameraActivity.Camer
 	}
 
 	private boolean setColorEffect(final JSONArray args, CallbackContext callbackContext) {
-	  if(fragment == null){
-	    return false;
-	  }
+		if(fragment == null){
+			return false;
+		}
 
-    Camera camera = fragment.getCamera();
-    if (camera == null){
-      return true;
-    }
+		Camera camera = fragment.getCamera();
+		if (camera == null){
+			return true;
+		}
 
-    Camera.Parameters params = camera.getParameters();
+		Camera.Parameters params = camera.getParameters();
 
-    try {
-      String effect = args.getString(0);
+		try {
+		String effect = args.getString(0);
 
-      if (effect.equals("aqua")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_AQUA);
-      } else if (effect.equals("blackboard")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_BLACKBOARD);
-      } else if (effect.equals("mono")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_MONO);
-      } else if (effect.equals("negative")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_NEGATIVE);
-      } else if (effect.equals("none")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_NONE);
-      } else if (effect.equals("posterize")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_POSTERIZE);
-      } else if (effect.equals("sepia")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_SEPIA);
-      } else if (effect.equals("solarize")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_SOLARIZE);
-      } else if (effect.equals("whiteboard")) {
-        params.setColorEffect(Camera.Parameters.EFFECT_WHITEBOARD);
-      }
-			params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+		if (effect.equals("aqua")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_AQUA);
+		} else if (effect.equals("blackboard")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_BLACKBOARD);
+		} else if (effect.equals("mono")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_MONO);
+		} else if (effect.equals("negative")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_NEGATIVE);
+		} else if (effect.equals("none")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_NONE);
+		} else if (effect.equals("posterize")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_POSTERIZE);
+		} else if (effect.equals("sepia")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_SEPIA);
+		} else if (effect.equals("solarize")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_SOLARIZE);
+		} else if (effect.equals("whiteboard")) {
+		params.setColorEffect(Camera.Parameters.EFFECT_WHITEBOARD);
+		}
+	    params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 
-  	  fragment.setCameraParameters(params);
+		fragment.setCameraParameters(params);
 	    return true;
     } catch(Exception e) {
       e.printStackTrace();

@@ -12,6 +12,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.camera2.CameraManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.DisplayMetrics;
@@ -88,7 +89,7 @@ public class CameraActivity extends Fragment {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState);
     }
 	public void setRect(int x, int y, int width, int height){
 		this.x = x;
@@ -188,12 +189,12 @@ public class CameraActivity extends Fragment {
 	        });
         }
     }
-
+	
     private void setDefaultCameraId(){
-
+		
 		// Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
-
+		
 		int camId = defaultCamera.equals("front") ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
 
 		// Find the ID of the default camera
@@ -206,25 +207,35 @@ public class CameraActivity extends Fragment {
 			}
 		}
 	}
-
+	
     @Override
     public void onResume() {
         super.onResume();
+		//CameraManager manager = (CameraManager) getActivity().getApplicationContext().getSystemService(Context.CAMERA_SERVICE);
+		//manager.openCamera(defaultCamera,);
+        if(Camera.getNumberOfCameras() <= 0 || mCamera != null){
+			return;
+		}
 
-        mCamera = Camera.open(defaultCameraId);
+		mCamera = Camera.open(defaultCameraId);
 
+		//mCamera.lock();
         if (cameraParameters != null) {
           mCamera.setParameters(cameraParameters);
         }
+		//else {
+			//We might need to set default parameters
+		//}
 
-        cameraCurrentlyLocked = defaultCameraId;
 
+		cameraCurrentlyLocked = defaultCameraId;
+        
         if(mPreview.mPreviewSize == null){
-		mPreview.setCamera(mCamera, cameraCurrentlyLocked);
-	} else {
-		mPreview.switchCamera(mCamera, cameraCurrentlyLocked);
-		mCamera.startPreview();
-	}
+			mPreview.setCamera(mCamera, cameraCurrentlyLocked);
+		} else {
+			mPreview.switchCamera(mCamera, cameraCurrentlyLocked);
+			mCamera.startPreview();
+		}
 
 	    Log.d(TAG, "cameraCurrentlyLocked:" + cameraCurrentlyLocked);
 
@@ -248,7 +259,7 @@ public class CameraActivity extends Fragment {
 
     @Override
     public void onPause() {
-        super.onPause();
+		super.onPause();
 
         // Because the Camera object is a shared resource, it's very
         // important to release it when the activity is paused.
@@ -295,10 +306,13 @@ public class CameraActivity extends Fragment {
 		// Start the preview
 		mCamera.startPreview();
     }
-
+	public void focusCamera() {
+		if(mCamera != null) {
+			mCamera.autoFocus(null);
+		}
+	}
     public void setCameraParameters(Camera.Parameters params) {
       cameraParameters = params;
-
       if (mCamera != null && cameraParameters != null) {
         mCamera.setParameters(cameraParameters);
       }
@@ -314,16 +328,17 @@ public class CameraActivity extends Fragment {
         Bitmap ret = Bitmap.createBitmap(w, h, bitmap.getConfig());
         Canvas canvas= new Canvas(ret);
         canvas.drawBitmap(bitmap, -rect.left, -rect.top, null);
+
         return ret;
     }
-
+	
 	public void takePicture(final double maxWidth, final double maxHeight){
 		final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
 		if(mPreview != null) {
-
+			
 			if(!canTakePicture)
 				return;
-
+			
 			canTakePicture = false;
 
 			mPreview.setOneShotPreviewCallback(new Camera.PreviewCallback() {
@@ -331,59 +346,32 @@ public class CameraActivity extends Fragment {
 				@Override
 				public void onPreviewFrame(final byte[] data, final Camera camera) {
 
-					new Thread() {
-						public void run() {
+					//raw picture
+					byte[] bytes = mPreview.getFramePicture(data, camera);
+					Bitmap pic = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
-							//raw picture
-							byte[] bytes = mPreview.getFramePicture(data, camera);
-							final Bitmap pic = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
-							//scale down
-							float scale = (float)pictureView.getWidth()/(float)pic.getWidth();
-							Bitmap scaledBitmap = Bitmap.createScaledBitmap(pic, (int)(pic.getWidth()*scale), (int)(pic.getHeight()*scale), false);
+					final Matrix matrix = new Matrix();
+					if (cameraCurrentlyLocked == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+						Log.d(TAG, "mirror y axis");
+						matrix.preScale(-1.0f, 1.0f);
+					}
+					Log.d(TAG, "preRotate " + mPreview.getDisplayOrientation() + "deg");
+					matrix.postRotate(mPreview.getDisplayOrientation());
 
-							final Matrix matrix = new Matrix();
-							if (cameraCurrentlyLocked == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-								Log.d(TAG, "mirror y axis");
-								matrix.preScale(-1.0f, 1.0f);
-							}
-							Log.d(TAG, "preRotate " + mPreview.getDisplayOrientation() + "deg");
-							matrix.postRotate(mPreview.getDisplayOrientation());
 
-							final Bitmap fixedPic = Bitmap.createBitmap(scaledBitmap, 0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight(), matrix, false);
-							final Rect rect = new Rect(mPreview.mSurfaceView.getLeft(), mPreview.mSurfaceView.getTop(), mPreview.mSurfaceView.getRight(), mPreview.mSurfaceView.getBottom());
+					//Bitmap finalPic = null;
+					//scale final picture
+					if(maxWidth > 0 && maxHeight > 0){
+						final double scaleHeight = maxWidth/(double)pic.getHeight();
+						final double scaleWidth = maxHeight/(double)pic.getWidth();
+						final double scale  = scaleHeight < scaleWidth ? scaleWidth : scaleHeight;
+						pic  = Bitmap.createScaledBitmap(pic, (int) (pic.getWidth() * scale), (int) (pic.getHeight() * scale), false);
+					}
 
-							getActivity().runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									pictureView.setImageBitmap(fixedPic);
-									pictureView.layout(rect.left, rect.top, rect.right, rect.bottom);
 
-									Bitmap finalPic = null;
-									//scale final picture
-									if(maxWidth > 0 && maxHeight > 0){
-										final double scaleHeight = maxWidth/(double)pic.getHeight();
-										final double scaleWidth = maxHeight/(double)pic.getWidth();
-										final double scale  = scaleHeight < scaleWidth ? scaleWidth : scaleHeight;
-										finalPic = Bitmap.createScaledBitmap(pic, (int)(pic.getWidth()*scale), (int)(pic.getHeight()*scale), false);
-									}
-									else{
-										finalPic = pic;
-									}
-
-									Bitmap originalPicture = Bitmap.createBitmap(finalPic, 0, 0, (int)(finalPic.getWidth()), (int)(finalPic.getHeight()), matrix, false);
-
-								    //get bitmap and compress
-								    Bitmap picture = loadBitmapFromView(view.findViewById(getResources().getIdentifier("frame_camera_cont", "id", appResourcesPackage)));
-								    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-								    picture.compress(Bitmap.CompressFormat.PNG, 80, stream);
-
-									generatePictureFromView(originalPicture, picture);
-									canTakePicture = true;
-								}
-							});
-						}
-					}.start();
+					generatePictureFromView(Bitmap.createBitmap(pic, 0, 0, (int) (pic.getWidth()), (int) (pic.getHeight()), matrix, false));
+					canTakePicture = true;
 				}
 			});
 		}
@@ -391,40 +379,23 @@ public class CameraActivity extends Fragment {
 			canTakePicture = true;
 		}
 	}
-    private void generatePictureFromView(final Bitmap originalPicture, final Bitmap picture){
+    private void generatePictureFromView(final Bitmap originalPicture){
 
-	    final FrameLayout cameraLoader = (FrameLayout)view.findViewById(getResources().getIdentifier("camera_loader", "id", appResourcesPackage));
-	    cameraLoader.setVisibility(View.VISIBLE);
-	    final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
-	    new Thread() {
-		    public void run() {
+	    //final FrameLayout cameraLoader = (FrameLayout)view.findViewById(getResources().getIdentifier("camera_loader", "id", appResourcesPackage));
+	    //cameraLoader.setVisibility(View.VISIBLE);
+	    //final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
+		try {
+			//final File picFile = storeImage(picture, "_preview");
+			final File originalPictureFile = storeImage(originalPicture, "_original");
 
-			    try {
-				    final File picFile = storeImage(picture, "_preview");
-				    final File originalPictureFile = storeImage(originalPicture, "_original");
+			eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), originalPictureFile.getAbsolutePath());//picFile.getAbsolutePath());
 
-					eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), picFile.getAbsolutePath());
 
-				    getActivity().runOnUiThread(new Runnable() {
-					    @Override
-					    public void run() {
-				            cameraLoader.setVisibility(View.INVISIBLE);
-						    pictureView.setImageBitmap(null);
-					    }
-				    });
-			    }
-			    catch(Exception e){
-				    //An unexpected error occurred while saving the picture.
-				    getActivity().runOnUiThread(new Runnable() {
-					    @Override
-					    public void run() {
-				            cameraLoader.setVisibility(View.INVISIBLE);
-						    pictureView.setImageBitmap(null);
-					    }
-				    });
-			    }
-		    }
-	    }.start();
+		}
+		catch(Exception e){
+			//An unexpected error occurred while saving the picture.
+
+		}
     }
 
     private File getOutputMediaFile(String suffix){
@@ -451,7 +422,7 @@ public class CameraActivity extends Fragment {
         if (pictureFile != null) {
             try {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
-                image.compress(Bitmap.CompressFormat.JPEG, 80, fos);
+                image.compress(Bitmap.CompressFormat.JPEG, 80, fos); //TODO: Make compression a param.
                 fos.close();
                 return pictureFile;
             }
@@ -480,7 +451,7 @@ public class CameraActivity extends Fragment {
 		}
 		return inSampleSize;
 	}
-
+	
     private Bitmap loadBitmapFromView(View v) {
         Bitmap b = Bitmap.createBitmap( v.getMeasuredWidth(), v.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
@@ -488,7 +459,7 @@ public class CameraActivity extends Fragment {
         v.draw(c);
         return b;
     }
-
+    
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -526,7 +497,8 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
         mCamera = camera;
         this.cameraId = cameraId;
         if (mCamera != null) {
-            mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+			mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+
             setCameraDisplayOrientation();
             //mCamera.getParameters().setRotation(getDisplayOrientation());
             //requestLayout();
@@ -573,7 +545,7 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
         Log.d(TAG, "screen is rotated " + degrees + "deg from natural");
         Log.d(TAG, (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT ? "front" : "back")
         	+ " camera is oriented -" + info.orientation + "deg from natural");
-        Log.d(TAG, "need to rotate preview " + displayOrientation + "deg");
+		Log.d(TAG, "need to rotate preview " + displayOrientation + "deg");
         mCamera.setDisplayOrientation(displayOrientation);
     }
 
@@ -581,9 +553,10 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
         setCamera(camera, cameraId);
         try {
             camera.setPreviewDisplay(mHolder);
+			//camera.setPreviewTexture();//TODO: use this to get more effects
 	        Camera.Parameters parameters = camera.getParameters();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-						parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 	        camera.setParameters(parameters);
         }
         catch (IOException exception) {
@@ -683,7 +656,7 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
         }
     }
 
-		private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+	private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
 		int bestChoice = 0;
 
 		int currentHighest = 0;
@@ -714,7 +687,7 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
 				bestChoice = i;
 			}
 		}
-
+		
 		return sizes.get(bestChoice);
 	}
 
@@ -724,10 +697,12 @@ class Preview extends RelativeLayout implements SurfaceHolder.Callback {
 		    // the preview.
 		    Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+			parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
 		    requestLayout();
 		    //mCamera.setDisplayOrientation(90);
-		    mCamera.setParameters(parameters);
+			mCamera.setParameters(parameters);
 		    mCamera.startPreview();
+
 	    }
     }
 
