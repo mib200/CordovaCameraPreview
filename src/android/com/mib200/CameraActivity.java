@@ -387,10 +387,10 @@ public class CameraActivity extends Fragment {
 	    //final ImageView pictureView = (ImageView) view.findViewById(getResources().getIdentifier("picture_view", "id", appResourcesPackage));
 		try {
 			//final File picFile = storeImage(picture, "_preview");
-			// final File originalPictureFile = storeImage(originalPicture, "_original");
+			final File originalPictureFile = storeImage(originalPicture, "_original");
 
-			// eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), originalPictureFile.getAbsolutePath());//picFile.getAbsolutePath());
-			eventListener.onPictureTaken(bitmapToBase64(originalPicture), bitmapToBase64(originalPicture));//picFile.getAbsolutePath());
+			eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), originalPictureFile.getAbsolutePath());//picFile.getAbsolutePath());
+			// eventListener.onPictureTaken(bitmapToBase64(originalPicture), bitmapToBase64(originalPicture));//picFile.getAbsolutePath());
 
 
 		}
