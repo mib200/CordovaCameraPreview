@@ -388,8 +388,9 @@ public class CameraActivity extends Fragment {
 		try {
 			//final File picFile = storeImage(picture, "_preview");
 			final File originalPictureFile = storeImage(originalPicture, "_original");
+			final File previewPictureFile = storeImage(cropToSquare(originalPicture), "_original");
 
-			eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), originalPictureFile.getAbsolutePath());//picFile.getAbsolutePath());
+			eventListener.onPictureTaken(originalPictureFile.getAbsolutePath(), previewPictureFile.getAbsolutePath());//picFile.getAbsolutePath());
 			// eventListener.onPictureTaken(bitmapToBase64(originalPicture), bitmapToBase64(originalPicture));//picFile.getAbsolutePath());
 
 
@@ -399,6 +400,20 @@ public class CameraActivity extends Fragment {
 
 		}
     }
+
+		public static Bitmap cropToSquare(Bitmap bitmap){
+	    int width  = bitmap.getWidth();
+	    int height = bitmap.getHeight();
+	    int newWidth = (height > width) ? width : height;
+	    int newHeight = (height > width)? height - ( height - width) : height;
+	    int cropW = (width - height) / 2;
+	    cropW = (cropW < 0)? 0: cropW;
+	    int cropH = (height - width) / 2;
+	    cropH = (cropH < 0)? 0: cropH;
+	    Bitmap cropImg = Bitmap.createBitmap(bitmap, cropW, cropH, newWidth, newHeight);
+
+	    return cropImg;
+		}
 
 		private String bitmapToBase64(Bitmap bitmap) {
 	    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
