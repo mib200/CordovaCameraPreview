@@ -2,7 +2,7 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVPlugin.h>
 #import <Cordova/CDVInvokedUrlCommand.h>
-
+#import "NSData+Base64.h"
 #import "CameraPreview.h"
 
 @implementation CameraPreview
@@ -311,14 +311,22 @@
                 CIContext *context = [CIContext contextWithOptions:nil];
                 UIImage *saveUIImage = [UIImage imageWithCGImage:[context createCGImage:finalCImage fromRect:finalCImage.extent]];
                 originalPicturePath = [CameraPreview saveImage: saveUIImage withName: fileName];
+                
+                NSData* imageDataObject = nil;
+                imageDataObject = UIImageJPEGRepresentation(saveUIImage, (100.f/100.f));
+                
+                NSString *encodedString = [imageDataObject base64EncodingWithLineLength:0];
+                
+//                NSLog(encodedString);
 
-                NSLog(originalPicturePath);
+//                NSLog(originalPicturePath);
+                
                 dispatch_group_t group = dispatch_group_create();
                 dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                     NSMutableArray *params = [[NSMutableArray alloc] init];
 
                     [params addObject:originalPicturePath];
-                    [params addObject:originalPicturePath]; // For returning preview also
+                    [params addObject:encodedString]; // For returning preview also
 
                     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:params];
                     [pluginResult setKeepCallbackAsBool:true];
