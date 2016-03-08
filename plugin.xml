@@ -60,7 +60,7 @@
         <source-file src="src/ios/CameraRenderController.m" />
 
         <header-file src="src/ios/NSData+Base64.h" />
-        <source-file src="src/ios/NSData+Base64.m" />
+        <source-file src="src/ios/NSData+Base64.m" compiler-flags="-fno-objc-arc" />
 	
 	       <framework src="ImageIO.framework" weak="true" />
          <framework src="MobileCoreServices.framework" />
