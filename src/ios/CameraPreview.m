@@ -266,7 +266,7 @@
                 NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
                 UIImage *capturedImage  = [CameraPreview normalizedImage:[[UIImage alloc] initWithData:imageData]];
                 
-                capturedImage = [CameraPreview getCenterMaxSquareImageByCroppingImage:capturedImage withOrientation:UIImageOrientationDown];
+                // capturedImage = [CameraPreview getCenterMaxSquareImageByCroppingImage:capturedImage withOrientation:UIImageOrientationDown];
 
                 CIImage *capturedCImage;
                 //image resize
